@@ -5,7 +5,6 @@ import java.io.Console;
 import board.*;
 import cards.Card;
 import cards.CardType;
-import javafx.application.Application;
 
 public class Game{
 	private static Player p1, p2;
@@ -60,7 +59,7 @@ public class Game{
 						break;
 					case 3:
 						String cookMush = keyboard.readLine("What ingredients are you cooking? Type the position of the cards in your hand (use commas to separate):");
-					    String[] splittedStringOfInts = cookMush.split(",");
+						String[] splittedStringOfInts = cookMush.split(",");
 						ArrayList<Card> cookingmushrooms = new ArrayList<Card>();
 						for (int k=0;k<splittedStringOfInts.length;k++) {
 							int inputInt=Integer.parseInt(splittedStringOfInts[k]);
@@ -120,14 +119,8 @@ public class Game{
 		}
 	}
 
-
 	public static void main (String [] args) {
-		if (args[0].equals("terminal")) {
-			play();
-		}
-		else if (args[0].equals("graphic")) {
-			//Application.launch(GraphicalGame.class, args);
-		}
+		play();
 	}
 
 	private static void displayBoard() {
