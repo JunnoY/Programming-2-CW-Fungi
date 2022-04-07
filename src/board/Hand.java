@@ -3,10 +3,10 @@ import cards.*;
 import java.util.ArrayList;
 
 public class Hand implements Displayable{
-    private ArrayList<Card> handList = new ArrayList<>();
+    private ArrayList<Card> handList = new ArrayList<Card>();
 
     public void add(Card card){
-        handList.add(card);
+        this.handList.add(card);
     }
 
     public int size(){
@@ -18,10 +18,9 @@ public class Hand implements Displayable{
         return handList.get(index);
     }
 
-    public Card removeElement(int number){
-        //remove method follows visual representation of indices
-        Card removecard = handList.get(number-1);
-        handList.remove(number-1);
+    public Card removeElement(int index){
+        Card removecard = handList.get(index);
+        handList.remove(index);
         return removecard;
     }
 }

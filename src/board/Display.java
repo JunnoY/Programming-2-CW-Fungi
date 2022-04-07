@@ -18,10 +18,10 @@ public class Display implements Displayable{
         return displayList.get(index);
     }
 
-    public Card removeElement(int number){
+    public Card removeElement(int index){
         //remove method follows visual representation of indices
-        Card removecard = displayList.get(number-1);
-        displayList.remove(number-1);
+        Card removecard = displayList.get(index);
+        displayList.remove(index);
         return removecard;
     }
 }
