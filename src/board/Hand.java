@@ -6,7 +6,7 @@ public class Hand implements Displayable{
     private ArrayList<Card> handList = new ArrayList<Card>();
 
     public void add(Card card){
-        this.handList.add(card);
+        handList.add(card);
     }
 
     public int size(){
