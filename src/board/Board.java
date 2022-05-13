@@ -73,23 +73,29 @@ public class Board {
         return decayPile;
     }
 
-    public static void updateDecayPile(){
-        int lastindex = forest.size()-1;
+    public static void updateDecayPile() {
         //if the decayPile >= 4, we clear the decay pile
-        if(decayPile.size()>=4){
+        if (decayPile.size() >= 4) {
             decayPile.clear();
             //'getElementAt()' follows internal indices
-            decayPile.add(forest.getElementAt(lastindex));
+            forest.removeCardAt(1);
+            if (forest.size() > 0) {
+                int lastindex = forest.size() - 1;
+                decayPile.add(forest.getElementAt(lastindex));
+                forest.removeCardAt(1);
+            }
             //because the visualisation of indices in forest is from 1 to..., from right to left
             //which visually, the most right item in forest is item 1(always),
             //but in reality, in the arraylist, the most right item is the last item in the arraylist
             //which in the method of 'removeCardAt', we define the real index we actually look for
             //is "arrayList.size()-input number"
+        } else {
             forest.removeCardAt(1);
-        }
-        else {
-            decayPile.add(forest.getElementAt(lastindex));
-            forest.removeCardAt(1);
+            if (forest.size() > 0) {
+                int lastindex = forest.size() - 1;
+                decayPile.add(forest.getElementAt(lastindex));
+                forest.removeCardAt(1);
+            }
         }
     }
 }

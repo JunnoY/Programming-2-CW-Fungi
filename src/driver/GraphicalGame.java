@@ -3,6 +3,8 @@ import javafx.application.Application;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.Rectangle2D;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.Scene;
@@ -14,7 +16,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.text.*;
 import javafx.stage.Modality;
-import javafx.stage.Stage;
+import javafx.stage.*;
 import board.*;
 import cards.*;
 import java.util.ArrayList;
@@ -44,47 +46,56 @@ public class GraphicalGame extends Application{
     public static BorderPane forestborder = new BorderPane(); //the border inside the p2 hbox
     public static BorderPane foreststatusborder = new BorderPane(); //the border inside the p1 hbox
 
+    public static ArrayList<Integer> indexlist=new ArrayList<>();
+    private static String card_identity = "";
+    private static int action_num = 0;
+    static boolean p1plays = true;
+    Player currentPlayer;
+    Button btn1 = createButtonsinControlPanel("Take one card from the forest");
+    Button btn2 = createButtonsinControlPanel("Take all the cards out of the decay pile");
+    Button btn3 = createButtonsinControlPanel("Cook three or more identical types of mushrooms");
+    Button btn4 = createButtonsinControlPanel("Sell two or more identical types of mushrooms");
+    Button btn5 = createButtonsinControlPanel("Put down one pan");
+    Button confirmbtn = createButtonsinControlPanel("Confirm");
+
     public void start(Stage stage){
-        AnchorPane startPane = createNewAnchorPane();
+        FlowPane startPane = createNewFlowPane();
+        MainWindow.setWidth(1920);
+        MainWindow.setHeight(1080);
         MainWindow.setTitle("Fungi Game");
 
-        Text welcometext = createText(startPane,100d,400d);
-        welcometext.setText("Welcome to Fungi Game!");
+        Text welcometext = new Text("Welcome to Fungi Game!");
         //can't set font in linux
         welcometext.setFont(Font.font("", FontWeight.BOLD,FontPosture.ITALIC,52));
         welcometext.setFill(Color.valueOf("#2E4053"));
-        Button playbtn = createButtons("Play",startPane,200d,600d, 150,60);
+        Button playbtn = createButtons("Play");
         playbtn.setOnAction(event -> {play();});
-        Button exitbtn = createButtons("Exit",startPane,300d,600d, 150,60);
+        Button exitbtn = createButtons("Exit");
         exitbtn.setOnAction(event -> {MainWindow.close();});
+        startPane.setVgap(200);
+        startPane.setHgap(1920);
+        startPane.setAlignment(Pos.CENTER);
+        startPane.getChildren().addAll(welcometext,playbtn,exitbtn);
         MainWindow.show();
     }
-    public static AnchorPane createNewAnchorPane(){
-        AnchorPane Pane = new AnchorPane();
-        Image backgroundImage = new Image("file:img/vintage_background.png",1920,1080,false, true);
-        BackgroundImage background = new BackgroundImage(backgroundImage, BackgroundRepeat.REPEAT, BackgroundRepeat.REPEAT, BackgroundPosition.DEFAULT, null);
-        Pane.setBackground(new Background(background));
+    public static FlowPane createNewFlowPane(){
+        FlowPane Pane = new FlowPane();
         Scene Scene = new Scene(Pane,1920,1080);
         MainWindow.setScene(Scene);
         return Pane;
     }
     public static BorderPane createNewBorderPane(){
         BorderPane Pane = new BorderPane();
-        Image backgroundImage = new Image("file:img/vintage_background.png",1920,1080,false, true);
-        BackgroundImage background = new BackgroundImage(backgroundImage, BackgroundRepeat.REPEAT, BackgroundRepeat.REPEAT, BackgroundPosition.DEFAULT, null);
-        Pane.setBackground(new Background(background));
         Scene Scene = new Scene(Pane,1920,1080);
         MainWindow.setScene(Scene);
         return Pane;
     }
 
-    public Button createButtons(String button_name, AnchorPane pane, Double topd, Double leftd, int minWidth, int minHeight){
+    public Button createButtons(String button_name){
         Button button = new Button(button_name);
-        AnchorPane.setTopAnchor(button,topd);
-        AnchorPane.setLeftAnchor(button,leftd);
-        button.setMinHeight(minHeight);
-        button.setMinWidth(minWidth);
         button.setStyle("-fx-background-color:#2E4053;-fx-font-weight: bold;-fx-text-fill:#FFFFFF;");
+        button.setMinWidth(200.0);
+        button.setMinHeight(100.0);
         button.addEventHandler(MouseEvent.MOUSE_ENTERED, new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent mouseEvent) {
@@ -97,14 +108,13 @@ public class GraphicalGame extends Application{
                 button.setStyle("-fx-background-color:#2E4053;-fx-font-weight: bold;-fx-text-fill:#FFFFFF;");
             }
         });
-        pane.getChildren().add(button);
         return button;
     }
 
     public static Button createButtonsinControlPanel(String button_name){
         Button button = new Button(button_name);
-        button.setMinHeight(80);
-        button.setMinWidth(80);
+        button.setMinHeight(50);
+        button.setMinWidth(400);
         button.setStyle("-fx-background-color:#2E4053;-fx-font-weight: bold;-fx-text-fill:#FFFFFF;");
         button.addEventHandler(MouseEvent.MOUSE_ENTERED, new EventHandler<MouseEvent>() {
             @Override
@@ -130,12 +140,12 @@ public class GraphicalGame extends Application{
 
     public static Text createGameText(String textname){
         Text text = new Text(textname);
-        text.setFont(Font.font("", FontWeight.BOLD,15));
+        text.setFont(Font.font("", FontWeight.BOLD,20));
         text.setTextAlignment(TextAlignment.CENTER);
         return text;
     }
 
-    public static void play() {
+    public void play() {
         BorderPane gameBorderPane = createNewBorderPane();
         //Three big boxes
         //Play box
@@ -143,47 +153,37 @@ public class GraphicalGame extends Application{
         Playbox.setStyle("-fx-background-color:#0877c7;");
         BorderPane PlayboxPane = new BorderPane();
         //Control Panel
-        Control_Panel.setPrefSize(240, 1080);
+        Control_Panel.setPrefSize(420, 1080);
         Control_Panel_Border.setPrefSize(240, 1080);
         Control_Panel_Border.setStyle("-fx-background-color:#0877c7;");
         //Decay Box
         decaybox.setPrefSize(400, 1080);
         decaybox.setStyle("-fx-background-color:#FFFFFF;");
-
         //Inside Play Box
         //Player1 Box
-        player1box.setPrefSize(1280, 320);
+        player1box.setPrefSize(1280, 440);
         player1box.setStyle("-fx-background-color:#EB8634;"); //orange
-        player1border.setPrefSize(1280, 320);
-        player1statusborder.setPrefSize(1280, 20);
-        P1Hand.setPrefSize(680, 340);
-        P1Display.setPrefSize(600, 340);
+        player1border.setPrefSize(1280, 400);
+        player1statusborder.setPrefSize(1280, 15);
+        P1Hand.setPrefSize(780, 400);
+        P1Display.setPrefSize(500, 400);
         //Player2 Box
-        player2box.setPrefSize(1280, 320);
+        player2box.setPrefSize(1280, 440);
         player2box.setStyle("-fx-background-color:#48CF0E;"); //green
-        player2border.setPrefSize(1280, 320);
-        player2statusborder.setPrefSize(1280, 20);
-        P2Hand.setPrefSize(680, 320);
-        P2Display.setPrefSize(600, 320);
+        player2border.setPrefSize(1280, 400);
+        player2statusborder.setPrefSize(1280, 15);
+        P2Hand.setPrefSize(780, 400);
+        P2Display.setPrefSize(500, 400);
         //forest
-        forestbox.setPrefSize(1280, 380);
-        forestborder.setPrefSize(1280, 380);
+        forestbox.setPrefSize(1280, 200);
+        forestborder.setPrefSize(1280, 230);
         foreststatusborder.setPrefSize(1280, 20);
         forestbox.setStyle("-fx-background-color:#0877c7;"); //blue
         //Text in boxes
         Text Control_Text = createGameText("Control Panel");
         Text Player1Text = createGameText("Player1");
         Text Player2Text = createGameText("Player2");
-        Text DecayText = createGameText("DecayPile");
         Text ForestText = createGameText("Forest");
-        Text Hand1 = new Text("Hand");
-        Text Hand2 = new Text("Hand");
-        Text Display1 = new Text("Display");
-        Text Display2 = new Text("Display");
-        P2Hand.getChildren().add(Hand2);
-        P1Hand.getChildren().add(Hand1);
-        P1Display.getChildren().add(Display1);
-        P2Display.getChildren().add(Display2);
         player1statusborder.setLeft(Player1Text);
         player1border.setTop(player1statusborder);
         player1border.setRight(P1Display);
@@ -199,55 +199,15 @@ public class GraphicalGame extends Application{
         forestbox.getChildren().addAll(forestborder);
         //create buttons in control panel
         FlowPane ControlPanelPane = new FlowPane();
-        ControlPanelPane.setPrefSize(240, 1060); //1080-20
-        ControlPanelPane.setVgap(10);
-        ControlPanelPane.setHgap(10);
-        Button start = createButtonsinControlPanel("START");
-        Button btn1 = createButtonsinControlPanel(1 + "");
-        Button btn2 = createButtonsinControlPanel(2 + "");
-        Button btn3 = createButtonsinControlPanel(3 + "");
-        Button btn4 = createButtonsinControlPanel(4 + "");
-        Button btn5 = createButtonsinControlPanel(5 + "");
+        ControlPanelPane.setPrefSize(420, 1060);
+        ControlPanelPane.setVgap(30);
         ControlPanelPane.setAlignment(Pos.CENTER);
-        ControlPanelPane.getChildren().addAll(start,btn1, btn2, btn3, btn4, btn5);
-        //popup message pane
-        HBox messageboxP1 = new HBox();
-        messageboxP1.setPrefSize(1280, 320);
-        BorderPane messagePaneP1 = new BorderPane();
-        messagePaneP1.setPrefSize(1280, 320);
-        messageboxP1.setStyle("-fx-background-color:#2E4053;");
-        HBox messageboxP2 = new HBox();
-        messageboxP2.setPrefSize(1280, 320);
-        BorderPane messagePaneP2 = new BorderPane();
-        messagePaneP2.setPrefSize(1280, 320);
-        messageboxP2.setStyle("-fx-background-color:#2E4053;");
-        Button exitmessagebtn1 = new Button("Exit");
-        exitmessagebtn1.setStyle("-fx-background-color:#FFFFFF;-fx-font-weight: bold;-fx-text-fill:#2E4053;");
-        exitmessagebtn1.setOnAction(event -> {
-            PlayboxPane.setBottom(player2box);
-        });
-        Button exitmessagebtn2 = new Button("Exit");
-        exitmessagebtn2.setStyle("-fx-background-color:#FFFFFF;-fx-font-weight: bold;-fx-text-fill:#2E4053;");
-        exitmessagebtn2.setOnAction(event -> {
-            PlayboxPane.setTop(player1box);
-        });
-        //create Type in control panel
-        VBox Typebox = new VBox();
-        Typebox.setPrefSize(240,1080);
-        Typebox.setStyle("-fx-background-color:#0877c7;");
-        BorderPane TypeBorderPane = new BorderPane();
-        TypeBorderPane.setPrefSize(240,1080);
-        TextField textfield = new TextField();
-        textfield.setPromptText("Enter your choice: ");
-        Button typeboxexitbtn = createButtonsinControlPanel("Confirm");
-        TypeBorderPane.setCenter(textfield);
-        TypeBorderPane.setBottom(typeboxexitbtn);
+        ControlPanelPane.getChildren().addAll(btn1, btn2, btn3, btn4, btn5, confirmbtn);
         //add things in the 3 big boxes
-        decaybox.getChildren().addAll(DecayText);
         Control_Panel_Border.setTop(Control_Text);
-        Control_Panel_Border.setCenter(ControlPanelPane);
+        Control_Panel_Border.setBottom(ControlPanelPane);
         Control_Panel.getChildren().addAll(Control_Panel_Border);
-        PlayboxPane.setPrefSize(1280,1080);
+        PlayboxPane.setPrefSize(1280, 1080);
         PlayboxPane.setTop(player1box);
         PlayboxPane.setCenter(forestbox);
         PlayboxPane.setBottom(player2box);
@@ -255,167 +215,264 @@ public class GraphicalGame extends Application{
         gameBorderPane.setRight(Control_Panel);
         gameBorderPane.setCenter(Playbox);
         gameBorderPane.setLeft(decaybox);
-        //Display board
-//        displayBoard();
-        start.setOnAction(Event->{
-            start.setDisable(true);
-            boolean p1plays = true;
-            Player currentPlayer;
-            Board.initialisePiles();
-            Board.setUpCards();
-            Board.getForestCardsPile().shufflePile();
+        Board.initialisePiles();
+        Board.setUpCards();
+        Board.getForestCardsPile().shufflePile();
 
-            //Populate forest
-            for (int i = 0; i < 8; i++) {
-                Board.getForest().add(Board.getForestCardsPile().drawCard());
-            }
-            //Initialise players and populate player hands
-            p1 = new Player();
-            currentPlayer = p1;
-            p2 = new Player();
-            p1.addCardtoHand(Board.getForestCardsPile().drawCard());
-            p1.addCardtoHand(Board.getForestCardsPile().drawCard());
-            p1.addCardtoHand(Board.getForestCardsPile().drawCard());
-            p2.addCardtoHand(Board.getForestCardsPile().drawCard());
-            p2.addCardtoHand(Board.getForestCardsPile().drawCard());
-            p2.addCardtoHand(Board.getForestCardsPile().drawCard());
-            displayBoard();
-            boolean messageboxP1set = false;
-            boolean messageboxP2set = false;
-            btn1.setOnAction(Event1 -> {
-                textfield.setText("1");
-            });
-            btn2.setOnAction(Event1 -> {
-                textfield.setText("2");
-            });
-            btn3.setOnAction(Event1 -> {
-                textfield.setText("3");
-            });
-            btn4.setOnAction(Event1 -> {
-                textfield.setText("4");
-            });
-            btn5.setOnAction(Event1 -> {
-                textfield.setText("5");
-            });
-
-            while (Board.getForest().size()>0) {
-                if (p1plays) {
-                    if (!messageboxP1set) {
-                        Text message = new Text("Player 1, which of the following actions are you going to do?\n" +
-                                "1. Take one card from the forest\n" + "2. Take all the cards out of the decay pile\n" +
-                                "3. Cook three or more identical types of mushrooms\n" + "4. Sell two or more identical types of mushrooms\n" +
-                                "5. Put down one pan");
-                        message.setFont(Font.font("", FontWeight.SEMI_BOLD, 20));
-                        message.setFill(Color.valueOf("#FFFFFF"));
-                        messagePaneP1.setTop(message);
-                        messagePaneP1.setCenter(exitmessagebtn1);
-                        messageboxP1.getChildren().add(messagePaneP1);
-                        PlayboxPane.setBottom(messagePaneP1);
-                        messageboxP1set = true;
-                    } else {
-                        PlayboxPane.setBottom(messagePaneP1);;
-                    }
-                }
-                else {
-                    if (!messageboxP2set) {
-                        Text message = new Text("Player 2, which of the following actions are you going to do?\n" +
-                                "1. Take one card from the forest\n" + "2. Take all the cards out of the decay pile\n" +
-                                "3. Cook three or more identical types of mushrooms\n" + "4. Sell two or more identical types of mushrooms\n" +
-                                "5. Put down one pan");
-                        message.setFont(Font.font("", FontWeight.SEMI_BOLD, 20));
-                        message.setFill(Color.valueOf("#FFFFFF"));
-                        messagePaneP2.setTop(message);
-                        messagePaneP2.setCenter(exitmessagebtn2);
-                        messageboxP2.getChildren().add(messagePaneP2);
-                        PlayboxPane.setTop(messagePaneP2);
-                        messageboxP2set = true;
-                    } else {
-                        PlayboxPane.setTop(messagePaneP2);
-                    }
-                }
-                if(btn1.isPressed()|btn2.isPressed()|btn3.isPressed()|btn4.isPressed()|btn5.isPressed()){
-                    try {
-                        Console keyboard = System.console();
-                        int option1 = Integer.parseInt(keyboard.readLine("Enter the number for the action:"));
-                        int option = Integer.parseInt(textfield.getText());
-                        Boolean succesfullMove = false;
-                        switch(option) {
-                            case 1:
-                                int position = Integer.parseInt(keyboard.readLine("Enter the number of the card you want to take:"));
-                                if (currentPlayer.takeCardFromTheForest(position)) {
-                                    if (Board.getForestCardsPile().pileSize()>0) {
-                                        Board.getForest().add(Board.getForestCardsPile().drawCard());
-                                    }
-                                    succesfullMove=true;
-                                }
-                                break;
-                            case 2:
-                                if (currentPlayer.takeFromDecay()) {
-                                    succesfullMove=true;
-                                }
-                                break;
-                            case 3:
-                                String cookMush = keyboard.readLine("What ingredients are you cooking? Type the position of the cards in your hand (use commas to separate):");
-                                String[] splittedStringOfInts = cookMush.split(",");
-                                ArrayList<Card> cookingmushrooms = new ArrayList<Card>();
-                                for (int k=0;k<splittedStringOfInts.length;k++) {
-                                    int inputInt=Integer.parseInt(splittedStringOfInts[k]);
-                                    cookingmushrooms.add(currentPlayer.getHand().getElementAt(inputInt-1));
-                                }
-                                if (currentPlayer.cookMushrooms(cookingmushrooms)) {
-                                    succesfullMove=true;
-                                }
-                                break;
-                            case 4:
-                                String mushType = keyboard.readLine("What type of mushrooms are you willing to sell? Type mushroom name:");
-                                int mushNumber  = Integer.parseInt(keyboard.readLine("How many are willing to sell? Type number:"));
-                                if (currentPlayer.sellMushrooms(mushType,mushNumber)) {
-                                    succesfullMove=true;
-                                }
-                                break;
-                            case 5:
-                                if (currentPlayer.putPanDown()) {
-                                    succesfullMove=true;
-                                }
-                                break;
-                        }
-                        String prompt="TRY AGAIN";
-                        if (succesfullMove) {
-                            if (Board.getForest().size()>0) {
-                                Board.updateDecayPile();
-                            }
-                            if (Board.getForestCardsPile().pileSize()>0) {
-                                Board.getForest().add(Board.getForestCardsPile().drawCard());
-                            }
-                            displayBoard();
-                            p1plays=!p1plays;
-                            if (p1plays)
-                                currentPlayer=p1;
-                            else
-                                currentPlayer=p2;
-                            prompt="NEW MOVE";
-                        }
-                        System.out.println();
-                        displayGameStatus();
-                        System.out.println("================================================================================================================");
-                        System.out.println("                                         "+prompt+"                                                             ");
-                        System.out.println("================================================================================================================");
-                    }
-                    catch(NumberFormatException e) {
-                        System.out.println("This is not the appropriate format. Avoid white spaces and characters when a number is expected.");
-                    };};}
-            if (p1.getScore() > p2.getScore()) {
-                System.out.println("Player 1 wins");
-            } else if (p2.getScore() > p1.getScore()) {
-                System.out.println("Player 2 wins");
-            } else {
-                System.out.println("There was a tie");
-            }
-            });
-
+        //Populate forest
+        p1 = new Player();
+        p2 = new Player();
+        for (int i = 0; i < 8; i++) {
+            Board.getForest().add(Board.getForestCardsPile().drawCard());
+        }
+        //Initialise players and populate player hands
+        p1.addCardtoHand(Board.getForestCardsPile().drawCard());
+        p1.addCardtoHand(Board.getForestCardsPile().drawCard());
+        p1.addCardtoHand(Board.getForestCardsPile().drawCard());
+        p2.addCardtoHand(Board.getForestCardsPile().drawCard());
+        p2.addCardtoHand(Board.getForestCardsPile().drawCard());
+        p2.addCardtoHand(Board.getForestCardsPile().drawCard());
+        displayBoard();
+        btn1.setUserData(new Object[]{1});
+        btn1.addEventFilter(MouseEvent.MOUSE_CLICKED,actionclickHandler);
+        btn2.setUserData(new Object[]{2});
+        btn2.addEventFilter(MouseEvent.MOUSE_CLICKED,actionclickHandler);
+        btn3.setUserData(new Object[]{3});
+        btn3.addEventFilter(MouseEvent.MOUSE_CLICKED,actionclickHandler);
+        btn4.setUserData(new Object[]{4});
+        btn4.addEventFilter(MouseEvent.MOUSE_CLICKED,actionclickHandler);
+        btn5.setUserData(new Object[]{5});
+        btn5.addEventFilter(MouseEvent.MOUSE_CLICKED,actionclickHandler);
+        confirmbtn.setUserData(new Object[]{"confirm"});
+        confirmbtn.addEventFilter(MouseEvent.MOUSE_CLICKED,confirmclickHandler);
+        if (p1plays) {
+                Text p1turntext = createGameText("Player 1's turn");
+                p1turntext.setFont(Font.font("", FontWeight.BOLD, 24));
+                Control_Panel_Border.setCenter(p1turntext);
+        } else {
+            Text p2turntext = createGameText("Player 2's turn");
+            p2turntext.setFont(Font.font("", FontWeight.BOLD, 24));
+            Control_Panel_Border.setCenter(p2turntext);
+        }
+        currentPlayer = p1;
     }
+    private static ArrayList storeindexofimg(int index){
+        indexlist.add(index);
+        return indexlist;
+    }
+    private static String storecard_identity(String input){
+        card_identity =input;
+        return card_identity;
+    }
+    private EventHandler<MouseEvent> imageclickHandler = new EventHandler<MouseEvent>(){
+        @Override
+        public void handle(MouseEvent e){
+            Object obj = e.getSource();
+            Object[] param = (Object[]) ((Node)obj).getUserData();
+            int index = (int)param[1];
+            String card_ident = (String)param[0];
+            if(card_ident.equals("p1")&&currentPlayer.equals(p1)){
+                storeindexofimg(index);
+                storecard_identity(card_ident);
+                System.out.println("Card "+index+" clicked");
+            }
+            else if(card_ident.equals("p2")&&currentPlayer.equals(p2)){
+                storeindexofimg(index);
+                storecard_identity(card_ident);
+                System.out.println("Card "+index+" clicked");
+            }
+            else if(card_ident.equals("forest")){
+                storeindexofimg(index);
+                storecard_identity(card_ident);
+                System.out.println("Card "+index+" clicked");
+            }
+            else{
+                System.out.println("Wrong selection");
+            }
 
-    private static void displayBoard(){
+        }
+    };
+    private EventHandler<MouseEvent> actionclickHandler = e -> {
+        indexlist.clear();
+        Object obj = e.getSource();
+        Object[] param = (Object[]) ((Node)obj).getUserData();
+        int index = (int)param[0];
+        action_num = index;
+        System.out.println("Action "+index+" clicked");
+    };
+    private EventHandler<MouseEvent> confirmclickHandler = new EventHandler<MouseEvent>(){
+        @Override
+        public void handle(MouseEvent e){
+            System.out.println("confirm clicked");
+            if (Board.getForest().size() > 0) {
+                    Boolean succesfullMove = false;
+                    if (action_num==1&&indexlist.size()==1){
+                        if(card_identity.equals("forest")) {
+                            int position = indexlist.get(0);
+                            System.out.println("Position " + position);
+                            if (currentPlayer.takeCardFromTheForest(position)) {
+                                if (Board.getForestCardsPile().pileSize() > 0) {
+                                    Board.getForest().add(Board.getForestCardsPile().drawCard());
+                                }
+                                succesfullMove = true;
+                            }
+                        }
+                        else{
+                            Text errortext = createGameText("Wrong card chosen, try again!");
+                            errortext.setFont(Font.font("", FontWeight.BOLD, 18));
+                            Control_Panel_Border.setCenter(errortext);
+                        }
+                    }
+
+                    else if(action_num==2){
+                        if (currentPlayer.takeFromDecay()) {
+                            succesfullMove = true;
+                        }
+                        else{
+                            Text errortext = createGameText("Action failed, try another action!");
+                            errortext.setFont(Font.font("", FontWeight.BOLD, 18));
+                            Control_Panel_Border.setCenter(errortext);
+                        }
+                    }
+                    else if(action_num==3){
+                        ArrayList<Card> cookingmushrooms = new ArrayList<Card>();
+                        if(currentPlayer.equals(p1)&&card_identity.equals("p1")){
+                            for (int k = 0; k < indexlist.size(); k++) {
+                                cookingmushrooms.add(currentPlayer.getHand().getElementAt(indexlist.get(k)));
+                            }
+                            if (currentPlayer.cookMushrooms(cookingmushrooms)) {
+                                succesfullMove = true;
+                            }
+                        }
+                        else if(currentPlayer.equals(p2)&&card_identity.equals("p2")){
+                            for (int k = 0; k < indexlist.size(); k++) {
+                                cookingmushrooms.add(currentPlayer.getHand().getElementAt(indexlist.get(k)));
+                            }
+                            if (currentPlayer.cookMushrooms(cookingmushrooms)) {
+                                succesfullMove = true;
+                            }
+                        }
+                        else{
+                            Text errortext = createGameText("Wrong card chosen, try again!");
+                            errortext.setFont(Font.font("", FontWeight.BOLD, 18));
+                            Control_Panel_Border.setCenter(errortext);
+                        }
+
+                    }
+                    else if(action_num==4){
+                        int mushNumber = 0;
+                        String mushType = "";
+                        for(int i=0;i<1;i++){
+                            mushType = currentPlayer.getHand().getElementAt(indexlist.get(i)).getName();
+                            mushNumber+=1;
+                            for(int j=1;j<indexlist.size();j++){
+                                if(mushType.equals(currentPlayer.getHand().getElementAt(indexlist.get(j)).getName())){
+                                    mushNumber+=1;
+                                }
+                                else {
+                                    mushNumber=0;
+                                    break;
+                                }
+                            }
+                        }
+                        if (currentPlayer.sellMushrooms(mushType, mushNumber)) {
+                            succesfullMove = true;
+                        }
+                        else{
+                            Text errortext = createGameText("Action failed, try again!");
+                            errortext.setFont(Font.font("", FontWeight.BOLD, 18));
+                            Control_Panel_Border.setCenter(errortext);
+                        }
+                    }
+                    else if(action_num==5){
+                        if (currentPlayer.putPanDown()) {
+                            succesfullMove = true;
+                        }
+                        else{
+                            Text errortext = createGameText("Action failed, try again!");
+                            errortext.setFont(Font.font("", FontWeight.BOLD, 18));
+                            Control_Panel_Border.setCenter(errortext);
+                        }
+                    }
+                    if (succesfullMove) {
+                        if (Board.getForest().size() > 0) {
+                            Board.updateDecayPile();
+                        }
+                        if (Board.getForestCardsPile().pileSize() > 0) {
+                            if(Board.getForestCardsPile().pileSize()>(8-Board.getForest().size())){
+                                while(Board.getForest().size()<8){
+                                    Board.getForest().add(Board.getForestCardsPile().drawCard());}
+                            }
+                            else{
+                                for(int i=0; i<Board.getForestCardsPile().pileSize();i++){
+                                    Board.getForest().add(Board.getForestCardsPile().drawCard());
+                                }
+                            }
+                        }
+                        displayBoard();
+                        p1plays = !p1plays;
+                        if (p1plays){
+                            currentPlayer = p1;
+                            Text p1turntext = createGameText("Player 1's turn");
+                            p1turntext.setFont(Font.font("", FontWeight.BOLD, 24));
+                            Control_Panel_Border.setCenter(p1turntext);}
+                        else{
+                            currentPlayer = p2;
+                            Text p2turntext = createGameText("Player 2's turn");
+                            p2turntext.setFont(Font.font("", FontWeight.BOLD, 24));
+                            Control_Panel_Border.setCenter(p2turntext);
+                        }
+                    }
+                    else{
+                        Text errortext = createGameText("Action failed, try another action!");
+                        errortext.setFont(Font.font("", FontWeight.BOLD, 18));
+                        Control_Panel_Border.setCenter(errortext);
+                    }
+            }
+            else{
+                if (p1.getScore() > p2.getScore()) {
+                    System.out.println("Player 1 wins");
+                    Text result_text = createGameText("Player 1 wins");
+                    result_text.setFont(Font.font("", FontWeight.BOLD, 24));
+                    Control_Panel_Border.setCenter(result_text);
+                    btn1.setDisable(true);
+                    btn2.setDisable(true);
+                    btn3.setDisable(true);
+                    btn4.setDisable(true);
+                    btn5.setDisable(true);
+                    confirmbtn.setDisable(true);
+                } else if (p2.getScore() > p1.getScore()) {
+                    System.out.println("Player 2 wins");
+                    Text result_text = createGameText("Player 2 wins");
+                    result_text.setFont(Font.font("", FontWeight.BOLD, 24));
+                    Control_Panel_Border.setCenter(result_text);
+                    btn1.setDisable(true);
+                    btn2.setDisable(true);
+                    btn3.setDisable(true);
+                    btn4.setDisable(true);
+                    btn5.setDisable(true);
+                    confirmbtn.setDisable(true);
+                } else {
+                    System.out.println("There was a tie");
+                    Text result_text = createGameText("There was a tie");
+                    result_text.setFont(Font.font("", FontWeight.BOLD, 24));
+                    Control_Panel_Border.setCenter(result_text);
+                    btn1.setDisable(true);
+                    btn2.setDisable(true);
+                    btn3.setDisable(true);
+                    btn4.setDisable(true);
+                    btn5.setDisable(true);
+                    confirmbtn.setDisable(true);
+                }
+            }
+        }
+    };
+    private void displayBoard(){
+        P1Hand.getChildren().clear();
+        P1Display.getChildren().clear();
+        P2Hand.getChildren().clear();
+        P2Display.getChildren().clear();
+        decaybox.getChildren().clear();
         displayGameStatus();
         printgraphicDisplayableP1Display(p1.getDisplay());
         printgraphicDisplayableP1Hand(p1.getHand());
@@ -424,7 +481,10 @@ public class GraphicalGame extends Application{
         printgraphicDisplayableP2Hand(p2.getHand());
     }
 
-    private static void printgraphicDisplayableP1Hand(Displayable d) {
+    private void printgraphicDisplayableP1Hand(Displayable d) {
+        Text Hand1 = new Text("Hand");
+        P1Hand.getChildren().add(Hand1);
+        String identity = "p1";
         FlowPane playercardpane = new FlowPane();
         playercardpane.setPrefSize(680,320);
         playercardpane.setVgap(4);
@@ -432,25 +492,30 @@ public class GraphicalGame extends Application{
         ImageView[] playercardsimageview = new ImageView[100];
         for (int i=0; i < d.size() ; i++) {
             BorderPane cardwithinfo = new BorderPane();
-            cardwithinfo.setPrefSize(120,120);
+            cardwithinfo.setPrefSize(120,130);
             String nameofcard = d.getElementAt(i).getName();
             playercardsimageview[i] = new ImageView(new Image("file:img/"+nameofcard+".jpg",110,120,false,false));
-            int index = i+1;
-            Text number = new Text(String.valueOf(index));
-            Text numberandnight = new Text(number +"(N)");
+            playercardsimageview[i].setUserData(new Object[]{identity,i});
+            playercardsimageview[i].addEventFilter(MouseEvent.MOUSE_CLICKED,imageclickHandler);
+//            int index = i+1;
+//            Text number = new Text(index+"");
+            Text numberandnight = new Text("(N)");
             if (d.getElementAt(i).getType().equals(CardType.NIGHTMUSHROOM)) {
                 cardwithinfo.setTop(numberandnight);
                 cardwithinfo.setCenter(playercardsimageview[i]);
                 playercardpane.getChildren().add(cardwithinfo);		}
             else {
-                cardwithinfo.setTop(number);
+//                cardwithinfo.setTop(number);
                 cardwithinfo.setCenter(playercardsimageview[i]);
                 playercardpane.getChildren().add(cardwithinfo);
             }
         }
         P1Hand.getChildren().add(playercardpane);
     }
-    private static void printgraphicDisplayableP2Hand(Displayable d) {
+    private void printgraphicDisplayableP2Hand(Displayable d) {
+        Text Hand2 = new Text("Hand");
+        P2Hand.getChildren().add(Hand2);
+        String identity = "p2";
         FlowPane playercardpane = new FlowPane();
         playercardpane.setPrefSize(680,320);
         playercardpane.setVgap(4);
@@ -458,25 +523,30 @@ public class GraphicalGame extends Application{
         ImageView[] playercardsimageview = new ImageView[100];
         for (int i=0; i < d.size() ; i++) {
             BorderPane cardwithinfo = new BorderPane();
-            cardwithinfo.setPrefSize(120,120);
+            cardwithinfo.setPrefSize(120,130);
             String nameofcard = d.getElementAt(i).getName();
             playercardsimageview[i] = new ImageView(new Image("file:img/"+nameofcard+".jpg",110,120,false,false));
-            int index = i+1;
-            Text number = new Text(String.valueOf(index));
-            Text numberandnight = new Text(number +"(N)");
+            playercardsimageview[i].setUserData(new Object[]{identity,i});
+            playercardsimageview[i].addEventFilter(MouseEvent.MOUSE_CLICKED,imageclickHandler);
+            //            int index = i+1;
+//            Text number = new Text(index+"");
+            Text numberandnight = new Text("(N)");
             if (d.getElementAt(i).getType().equals(CardType.NIGHTMUSHROOM)) {
                 cardwithinfo.setTop(numberandnight);
                 cardwithinfo.setCenter(playercardsimageview[i]);
                 playercardpane.getChildren().add(cardwithinfo);		}
             else {
-                cardwithinfo.setTop(number);
+//                cardwithinfo.setTop(number);
                 cardwithinfo.setCenter(playercardsimageview[i]);
                 playercardpane.getChildren().add(cardwithinfo);
             }
         }
         P2Hand.getChildren().add(playercardpane);
     }
-    private static void printgraphicDisplayableP1Display(Displayable d) {
+    private void printgraphicDisplayableP1Display(Displayable d) {
+        Text Display1 = new Text("Display");
+        P1Display.getChildren().add(Display1);
+        String identity = "p1";
         FlowPane playercardpane = new FlowPane();
         playercardpane.setPrefSize(600,320);
         playercardpane.setVgap(4);
@@ -484,25 +554,30 @@ public class GraphicalGame extends Application{
         ImageView[] playercardsimageview = new ImageView[100];
         for (int i=0; i < d.size() ; i++) {
             BorderPane cardwithinfo = new BorderPane();
-            cardwithinfo.setPrefSize(120,120);
+            cardwithinfo.setPrefSize(120,130);
             String nameofcard = d.getElementAt(i).getName();
             playercardsimageview[i] = new ImageView(new Image("file:img/"+nameofcard+".jpg",110,120,false,false));
-            int index = i+1;
-            Text number = new Text(String.valueOf(index));
-            Text numberandnight = new Text(number +"(N)");
+            playercardsimageview[i].setUserData(new Object[]{identity,i});
+            playercardsimageview[i].addEventFilter(MouseEvent.MOUSE_CLICKED,imageclickHandler);
+            //            int index = i+1;
+//            Text number = new Text(index+"");
+            Text numberandnight = new Text("(N)");
             if (d.getElementAt(i).getType().equals(CardType.NIGHTMUSHROOM)) {
                 cardwithinfo.setTop(numberandnight);
                 cardwithinfo.setCenter(playercardsimageview[i]);
-                playercardpane.getChildren().add(cardwithinfo);}
+                playercardpane.getChildren().add(cardwithinfo);		}
             else {
-                cardwithinfo.setTop(number);
+//                cardwithinfo.setTop(number);
                 cardwithinfo.setCenter(playercardsimageview[i]);
                 playercardpane.getChildren().add(cardwithinfo);
             }
         }
         P1Display.getChildren().add(playercardpane);
     }
-    private static void printgraphicDisplayableP2Display(Displayable d) {
+    private void printgraphicDisplayableP2Display(Displayable d) {
+        Text Display2 = new Text("Display");
+        P2Display.getChildren().add(Display2);
+        String identity = "p2";
         FlowPane playercardpane = new FlowPane();
         playercardpane.setPrefSize(600,320);
         playercardpane.setVgap(4);
@@ -510,18 +585,20 @@ public class GraphicalGame extends Application{
         ImageView[] playercardsimageview = new ImageView[100];
         for (int i=0; i < d.size() ; i++) {
             BorderPane cardwithinfo = new BorderPane();
-            cardwithinfo.setPrefSize(120,120);
+            cardwithinfo.setPrefSize(120,130);
             String nameofcard = d.getElementAt(i).getName();
             playercardsimageview[i] = new ImageView(new Image("file:img/"+nameofcard+".jpg",110,120,false,false));
-            int index = i+1;
-            Text number = new Text(String.valueOf(index));
-            Text numberandnight = new Text(number +"(N)");
+            playercardsimageview[i].setUserData(new Object[]{identity,i});
+            playercardsimageview[i].addEventFilter(MouseEvent.MOUSE_CLICKED,imageclickHandler);
+            //            int index = i+1;
+//            Text number = new Text(index+"");
+            Text numberandnight = new Text("(N)");
             if (d.getElementAt(i).getType().equals(CardType.NIGHTMUSHROOM)) {
                 cardwithinfo.setTop(numberandnight);
                 cardwithinfo.setCenter(playercardsimageview[i]);
                 playercardpane.getChildren().add(cardwithinfo);		}
             else {
-                cardwithinfo.setTop(number);
+//                cardwithinfo.setTop(number);
                 cardwithinfo.setCenter(playercardsimageview[i]);
                 playercardpane.getChildren().add(cardwithinfo);
             }
@@ -529,7 +606,8 @@ public class GraphicalGame extends Application{
         P2Display.getChildren().add(playercardpane);
     }
 
-    private static void printgraphicForest(CardList cl) {
+    private void printgraphicForest(CardList cl) {
+        String identity = "forest";
         FlowPane forestcardpane = new FlowPane();
         forestcardpane.setPrefSize(1080,320);
         forestcardpane.setVgap(4);
@@ -539,10 +617,12 @@ public class GraphicalGame extends Application{
             BorderPane cardwithinfo = new BorderPane();
             cardwithinfo.setPrefSize(120,120);
             String nameofcard = cl.getElementAt(i).getName();
+            int visual_index = Board.getForest().size()-i;
             forestcardsimageview[i] = new ImageView(new Image("file:img/"+nameofcard+".jpg",110,120,false,false));
-            int index = i+1;
-            Text number = new Text(index+"");
-            Text numberandnight = new Text(index +"(N)");
+            forestcardsimageview[i].setUserData(new Object[]{identity,visual_index});
+            forestcardsimageview[i].addEventFilter(MouseEvent.MOUSE_CLICKED,imageclickHandler);
+            Text number = new Text(visual_index+"");
+            Text numberandnight = new Text(visual_index +"(N)");
             if (cl.getElementAt(i).getType().equals(CardType.NIGHTMUSHROOM)) {
                 cardwithinfo.setTop(numberandnight);
                 cardwithinfo.setCenter(forestcardsimageview[i]);
@@ -563,6 +643,7 @@ public class GraphicalGame extends Application{
         foreststatusborder.setRight(ForestStatus);
 
         //DecayPile(use flowpane)
+        Text DecayText = createGameText("DecayPile");
         FlowPane DecayPile = new FlowPane();
         DecayPile.setPrefSize(400,1060);
         DecayPile.setVgap(4);
@@ -575,10 +656,11 @@ public class GraphicalGame extends Application{
         }
         for (int i=0;i<Board.getDecayPile().size();i++){
             String nameofcard = Board.getDecayPile().get(i).getName();
-            decaycards[i] = new ImageView(new Image("file:img/"+nameofcard+".jpg"));
+            decaycards[i] = new ImageView(new Image("file:img/"+nameofcard+".jpg",110,120,false,false));
             DecayPile.getChildren().add(decaycards[i]);
         }
-
+        decaybox.getChildren().addAll(DecayText,DecayPile);
+;
         //print stick and score in Player1 and Player2
         System.out.println("\nPlayer 1: "+p1.getStickNumber()+" sticks, score: "+p1.getScore());
         System.out.println("Player 2: "+p2.getStickNumber()+" sticks, score: "+p2.getScore());
